@@ -3,7 +3,7 @@ import './App.css';
 import Button from "@mui/material/Button";
 import { Alert, AppBar, Box, Card, CardActions, CardContent, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, Stack, Toolbar, Typography } from '@mui/material';
 import * as tf from "@tensorflow/tfjs";
-import { GraphModel } from '@tensorflow/tfjs';
+import { GraphModel, Rank, Tensor } from '@tensorflow/tfjs';
 import Dropzone from 'react-dropzone';
 
 const modelUrl = "https://storage.googleapis.com/covid19-ct-scan-models/model.json";
@@ -29,6 +29,7 @@ const App = () => {
         setCnnModel(model)
         setLoadModel(true);
         console.log("Successfully loaded cnn model");
+        
       });
     });
   }, []);
@@ -69,10 +70,11 @@ const App = () => {
               <Grid container direction={"column"} alignItems="center">
                 <Button disabled={image ? false : true} style={{ marginLeft: 10 }} size='small' variant="contained" onClick={() => {
                   const ctScan = document.getElementById("ct-scan-image") as HTMLImageElement;
-                  const img = tf.browser.fromPixels(ctScan).div(255).mean(2).toFloat().expandDims(0).expandDims(-1);
-                  const prediction = cnnModel?.predict(img) as tf.Tensor<tf.Rank>;
+                  const img = tf.browser.fromPixels(ctScan).mean(2).toFloat().expandDims(0).expandDims(-1);
+                  const prediction = cnnModel?.predict(img) as Tensor<Rank>;
                   prediction.data().then(data => {
-                    if (data[0] > 0) {
+                    console.log(prediction.toString())
+                    if (data[0] < data[1]) {
                       setHasCovid(false);
                     } else {
                       setHasCovid(true);
@@ -91,7 +93,7 @@ const App = () => {
           aria-describedby="alert-dialog-description"
         >
           <DialogTitle id="alert-dialog-title">
-            {"Diagnostic results"}
+            {"Results from diagnostic"}
           </DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-description">
